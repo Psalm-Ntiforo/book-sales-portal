@@ -614,8 +614,57 @@ function BuyerPortal({ onCheckoutComplete }) {
   );
 }
 
+// Change this to your own PIN before deploying. Anyone at the table who
+// knows this can open the dashboard, so keep it private, and change it if
+// you ever suspect it's leaked.
+const ADMIN_PIN = "5772";
+
+function PinGate({ onUnlock }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(e) {
+    e.preventDefault();
+    if (pin === ADMIN_PIN) {
+      setError("");
+      onUnlock();
+    } else {
+      setError("Incorrect PIN");
+    }
+  }
+
+  return (
+    <div className="max-w-xs mx-auto bg-[#FAF7F2] border border-[#E7E0D3] rounded-2xl p-6 mt-10">
+      <div className="text-[#201C1A] text-sm font-medium mb-3">Attendant dashboard</div>
+      <form onSubmit={submit}>
+        <input
+          type="password"
+          value={pin}
+          onChange={(e) => setPin(e.target.value)}
+          placeholder="Enter PIN"
+          className="w-full border border-[#E7E0D3] rounded-lg px-3 py-2 text-sm bg-white"
+          autoFocus
+        />
+        {error && <div className="text-xs text-[#C0392B] mt-1">{error}</div>}
+        <button
+          type="submit"
+          className="w-full mt-3 rounded-lg bg-[#201C1A] text-[#F5EFE3] py-2.5 text-sm hover:bg-[#000000]"
+        >
+          Unlock
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function BookSalesPortal() {
+  // The dashboard only exists at all if the URL includes ?admin=1 —
+  // ordinary buyers scanning the plain QR code never see it or the tab.
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const adminRequested = params ? params.get("admin") === "1" : false;
+
   const [adminView, setAdminView] = useState("buyer"); // buyer, dashboard
+  const [unlocked, setUnlocked] = useState(false);
   const [txns, setTxns] = useState([]);
   const idRef = useRef(1);
   const checkoutIdRef = useRef(1);
@@ -648,37 +697,43 @@ export default function BookSalesPortal() {
 
   return (
     <div className="w-full font-sans">
-      <div className="max-w-6xl mx-auto flex gap-1 mb-4 border-b border-[#E7E0D3]">
-        <button
-          onClick={() => setAdminView("buyer")}
-          className={
-            "px-4 py-2 text-sm rounded-t-lg -mb-px border " +
-            (adminView === "buyer"
-              ? "bg-[#F9F5F0] border-[#FB8C00] border-b-[#F9F5F0] text-[#201C1A] font-medium"
-              : "border-transparent text-[#A39B8E]")
-          }
-        >
-          Buyer view
-        </button>
-        <button
-          onClick={() => setAdminView("dashboard")}
-          className={
-            "px-4 py-2 text-sm rounded-t-lg -mb-px border " +
-            (adminView === "dashboard"
-              ? "bg-[#F9F5F0] border-[#FB8C00] border-b-[#F9F5F0] text-[#201C1A] font-medium"
-              : "border-transparent text-[#A39B8E]")
-          }
-        >
-          Dashboard
-        </button>
-      </div>
-
-      {adminView === "buyer" ? (
-        <BuyerPortal onCheckoutComplete={handleCheckoutComplete} />
-      ) : (
-        <div className="max-w-6xl mx-auto bg-[#FAF7F2] rounded-2xl border border-[#E7E0D3] p-5">
-          <Ledger txns={ledgerTxns} />
+      {adminRequested && (
+        <div className="max-w-6xl mx-auto flex gap-1 mb-4 border-b border-[#E7E0D3]">
+          <button
+            onClick={() => setAdminView("buyer")}
+            className={
+              "px-4 py-2 text-sm rounded-t-lg -mb-px border " +
+              (adminView === "buyer"
+                ? "bg-[#F9F5F0] border-[#FB8C00] border-b-[#F9F5F0] text-[#201C1A] font-medium"
+                : "border-transparent text-[#A39B8E]")
+            }
+          >
+            Buyer view
+          </button>
+          <button
+            onClick={() => setAdminView("dashboard")}
+            className={
+              "px-4 py-2 text-sm rounded-t-lg -mb-px border " +
+              (adminView === "dashboard"
+                ? "bg-[#F9F5F0] border-[#FB8C00] border-b-[#F9F5F0] text-[#201C1A] font-medium"
+                : "border-transparent text-[#A39B8E]")
+            }
+          >
+            Dashboard
+          </button>
         </div>
+      )}
+
+      {adminView === "dashboard" && adminRequested ? (
+        unlocked ? (
+          <div className="max-w-6xl mx-auto bg-[#FAF7F2] rounded-2xl border border-[#E7E0D3] p-5">
+            <Ledger txns={ledgerTxns} />
+          </div>
+        ) : (
+          <PinGate onUnlock={() => setUnlocked(true)} />
+        )
+      ) : (
+        <BuyerPortal onCheckoutComplete={handleCheckoutComplete} />
       )}
     </div>
   );
