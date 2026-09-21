@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { BookOpen, Gift, ShoppingCart, ArrowRight, Trash2 } from "lucide-react";
+import { BookOpen, Gift, ShoppingCart, ArrowRight, ArrowUp, Trash2 } from "lucide-react";
 
 const BOOKS = [
   { id: "b1", title: "Becoming A Great Leader", author: "Moses Baffour Awuah", price: 55, founder: true, category: "book" },
@@ -284,7 +284,7 @@ function Bookstore({ onAdd }) {
     <div>
       <section>
         <h2 className="text-[#FB8C00] text-2xl sm:text-3xl font-extrabold tracking-tight">Our Stock</h2>
-        <p className="mt-2 text-xs sm:text-sm text-[#6A1B9A] font-semibold tracking-[0.12em] uppercase">
+        <p className="mt-2 text-xs sm:text-sm text-[#6A1B9A] font-bold tracking-[0.12em] uppercase">
           Exclusives by Mr. Moses Baffour Awuah
         </p>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -322,6 +322,20 @@ function Bookstore({ onAdd }) {
           ))}
         </div>
       </section>
+
+      <div className="mt-10 flex justify-center">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="inline-flex items-center gap-2 rounded-lg border border-[#6A1B9A] px-4 py-2 text-sm font-medium text-[#6A1B9A] hover:bg-[#6A1B9A] hover:text-white"
+        >
+          <ArrowUp size={16} />
+          Back to Top
+        </button>
+      </div>
+      <footer className="mt-10 -mx-4 sm:-mx-6 rounded-b-2xl bg-[#6A1B9A] px-4 py-6 text-center text-sm text-white">
+        <p>©2026. Leadership Diary Training Program. All Rights Reserved.</p>
+        <p className="mt-1">Youth Arise Organization</p>
+      </footer>
     </div>
   );
 }
@@ -388,7 +402,7 @@ function Cart({ cart, onRemove, onCheckout, onBack }) {
           </button>
         </>
       )}
-      <button onClick={onBack} className="mt-4 text-xs text-[#A39B8E] hover:text-[#201C1A]">
+      <button onClick={onBack} className="mt-4 text-[18px] text-[#A39B8E] hover:text-[#201C1A]">
         &larr; keep shopping
       </button>
     </div>
@@ -402,7 +416,6 @@ function Checkout({ cart, onCash, onEcash }) {
   const timerRef = useRef(null);
   const total = cart.reduce((s, it) => s + it.price, 0);
   const hasFounder = cart.some((it) => it.founder);
-  const hasOther = cart.some((it) => !it.founder);
 
   function sendPrompt() {
     if (!/^0\d{9}$/.test(phone.trim())) {
@@ -429,13 +442,9 @@ function Checkout({ cart, onCash, onEcash }) {
     return (
       <div>
         <div className="text-xs text-[#8A8175] mb-1">
-          {hasFounder && hasOther
-            ? "This cart mixes founder's titles and other items — Counsellor Lynn's share is settled automatically after payment."
-            : hasFounder
-            ? "This cart's proceeds go directly to Counsellor Lynn."
-            : `Paid via the souvenir shortcode ${SHORTCODE}.`}
+              {hasFounder ? "This cart's proceeds go directly to Counsellor Lynn." : `Paid via the souvenir shortcode ${SHORTCODE}.`}
         </div>
-        <label className="text-xs text-[#8A8175] block mb-1 mt-3">Your mobile money number</label>
+        <label className="text-[18px] text-[#8A8175] block mb-1 mt-3">Your mobile money number</label>
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -487,12 +496,10 @@ function Done({ mode, onReset }) {
       <div className="text-sm text-[#201C1A] mb-1">
         {mode === "cash" ? "Hand the total in cash to the attendant" : "Payment confirmed"}
       </div>
-      <div className="text-xs text-[#A39B8E] mb-4">
-        {mode === "cash"
-          ? "They'll confirm receipt on their dashboard."
-          : "Recorded, and Counsellor Lynn's share (if any) is forwarded automatically."}
+      <div className="text-[24px] font-bold text-[#A39B8E] mb-4">
+            {mode === "cash" ? "They'll confirm receipt on the attendant's dashboard." : "Thank you for shopping with us!"}
       </div>
-      <button onClick={onReset} className="text-xs px-3 py-1.5 rounded-md border border-[#E7E0D3] text-[#201C1A]">
+      <button onClick={onReset} className="text-[24px] px-3 py-1.5 rounded-md border border-[#E7E0D3] text-[#201C1A]">
         Done · back to shopping
       </button>
     </div>
